@@ -1,0 +1,62 @@
+@startuml
+title シーケンス図_6月UML例題
+participant User
+
+User -> ItemManagerUser : new
+activate ItemManagerUser
+
+ItemManagerUser -> ItemManager : new
+activate ItemManager
+
+ItemManager -> itemList : new
+deactivate ItemManager
+
+loop
+
+note over ItemManagerUser : 標準入力を受け付ける \n new Scanner(System.in)
+note over ItemManagerUser #Aquamarine
+"1.商品登録"
+"2.商品一覧"
+"9.終了"
+---
+行う操作の番号を入力
+String input = scanner.next()
+end note
+
+alt input == 1
+
+note over ItemManagerUser #Aquamarine
+"名前" String name = scanner.next()
+"価格" int price = scanner.next()
+end note
+
+ItemManagerUser -> Item00 : new (名前,価格)
+activate Item00
+ItemManagerUser -> ItemManager : regist() Item00のリスト登録を指示
+activate ItemManager
+ItemManager -> itemList : add
+activate itemList
+note right : item00がリストに登録される \n (商品名 , 価格)
+
+else input == 2
+
+ItemManagerUser -> ItemManager : displayAll() 商品の一覧表示を指示
+ItemManager -> Item00 : getName(), getPrice()
+ItemManager <-- Item00 : 商品名, 価格
+
+note over ItemManager #Aquamarine
+"商品名 : (価格) 円"
+end note
+
+else input == 9
+
+note over ItemManagerUser
+"終了 loopを抜ける"
+"sc.close()"
+end note
+
+end alt
+
+end loop
+
+@enduml

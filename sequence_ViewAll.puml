@@ -1,0 +1,94 @@
+@startuml
+title シーケンス図_UC01全件表示
+participant MainWindow
+
+MainWindow -> FunctionController : new
+activate FunctionController
+
+FunctionController -> AllInfoService : new
+activate AllInfoService
+FunctionController -> AllInfoService : getAllInfo(ALLINFO,出力用Map)
+
+AllInfoService -> AllInfoDao : new
+activate AllInfoDao
+note right #Aquamarine
+SQL文を実行
+全データを取得
+"SELECT * FROM exifinfo;"
+Daoクラスの空Listにadd
+end note
+
+AllInfoService -> AllInfoDao : queryAllInfo()
+note over AllInfoService
+画像情報(ExifInfo)が登録されていない場合は
+DaoクラスのqueryAllInfoで初めて検知される
+end note
+
+loop SQLで取得できたデータの数だけwhile文で繰り返す
+AllInfoDao -> ExifInfo : new
+activate ExifInfo
+
+AllInfoDao -> ExifInfo : set()
+note right
+--set--
+ExifId,ファイル名,撮影日,
+撮影時間,カメラメーカー,
+カメラ機種,緯度,経度
+end note
+end loop
+deactivate ExifInfo
+
+note over AllInfoService
+こちらでもListを用意する
+(add済みListを受け取るため、参照先はnull)
+受け取ったListがsize == 0 だった場合
+エラーとして扱う【※1】
+end note
+AllInfoService <-- AllInfoDao : add済みのList<ExifInfo>
+deactivate AllInfoDao
+
+loop 返却されたListのsizeだけ繰り返す
+note over AllInfoService
+Daoから返ってきたadd済みのListを、
+String[][]に変換
+(getterで取得した各フィールドの値を全てString型に変換)
+
+出力用Mapに追加 put("listData",listdata)
+end note
+AllInfoService -> ExifInfo : get()
+activate ExifInfo
+AllInfoService <-- ExifInfo
+deactivate ExifInfo
+note right
+--get--
+ExifId,ファイル名,撮影日,
+撮影時間,カメラメーカー,
+カメラ機種,緯度,経度
+end note
+end loop
+
+FunctionController <-- AllInfoService : "正常に出力用Mapへの追加まで出来たらtrue \n  例外,DBエラー時はfalse【※1】
+
+note left #FFAAAA
+【※1】
+	●画像情報が登録されていない場合
+	受け取ったServiceクラスは
+        出力用Map("ERRORMESSAGE")に
+	エラーメッセージをput
+        fcにはfalseを返却
+	"画像データがありませんでした"
+
+	●DBとの接続が切断されている場合：
+	Daoクラスではthrows宣言をしておく
+	呼び出し元のServiceクラスにて
+        SQLExceptionをキャッチ
+	受け取ったServiceクラスは
+        出力用Map("ERRORMESSAGE")に
+	エラーメッセージをput
+        fcにはfalseを返却
+	"データベースへの接続に失敗しました"
+end note
+
+MainWindow <-- FunctionController : 全件表示が完了したらtrue \n 例外,DBエラー時はfalse
+
+@enduml
