@@ -1,0 +1,98 @@
+@startuml
+title クラス図_UC01全件表示
+
+gui.MainWindow o-- gui.FunctionController
+gui.FunctionName -- gui.FunctionController
+gui.FunctionController ..> AllInfoService
+AllInfoService ..> AllInfoDao
+AllInfoService ..> ExifInfo
+AllInfoDao ..> ExifInfo
+
+class gui.MainWindow {
+    +void main(String[] args)
+    +MainWindow()
+    -void initialize()
+    -void removeAll() 
+}
+
+class gui.FunctionName{
+    +{static}String ALLINFO    
+    +{static}String SELECTEDINFO    
+    +{static}String SINGLEINFO    
+    +{static}String ADDEXTINFO    
+    +{static}String DELEXTINFO    
+
+}
+
+class gui.FunctionController {
+    -int idNumber
+    -String[][] listData
+
+    +boolean doTask(String inputData, Map<String,Object> OutputData)    
+}
+
+note left of gui.FunctionController
+第一引数の先頭: FunctionName(機能を指定)
+第一引数の続き: 入力データ
+第二引数: 空のコレクション(出力用Map)
+end note
+
+note right of gui.FunctionController #FFAAAA
+DBエラー、例外発生時
+第二引数:キー "ERRORMESSAGE"
+        値 "(利用者へのエラーメッセージ)"
+
+end note
+
+class AllInfoService {
+    +boolean getAllInfo(String: inputData, Map<String,Object> OutputData)
+}
+
+note left of AllInfoService
+第一引数の先頭: ALLINFO
+第一引数の続き: 無し
+第二引数: 空のコレクション(出力用Map)
+end note
+
+class AllInfoDao {
+    +List<ExifInfo> queryAllInfo()
+}
+
+note right of AllInfoDao
+戻り値:List<ExifInfo>
+出力用Mapに格納するために返却する
+end note
+
+class ExifInfo {
+    -int id
+    -String filename
+    -Date photodate
+    -Time phototime
+    -String cameramaker
+    -String cameratype
+    -float longitude
+    -float latitude
+
+    ..getter..
+    +int getId()
+    +String getFileName()
+    +Date getPhotoDate()
+    +Time getPhotoTime()
+    +String getCameraMaker()
+    +String getCameraType()
+    +float getLongitude()
+    +float getLatitude()
+
+    ..setter..
+    +void setId(int id)
+    +void setFileName(String filename)
+    +void setPhotographingDate(Date photodate)
+    +void setPhotographingTime(Time phototime)
+    +void setCameraMaker(String cameramaker)
+    +void setCameraType(String cameratype)
+    +void setLongitude(float longitude)
+    +void setLatitude(float latitude)
+    
+}
+
+@enduml
